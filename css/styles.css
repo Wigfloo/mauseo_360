@@ -1,0 +1,46 @@
+#modal-content.fondo-translucido {
+            /* REEMPLAZA 'ruta/a/tu/imagen-de-fondo.jpg' con la imagen que quieras */
+            background-image: url('../images/3d/objeto_1.glb');
+            background-size: cover;
+            background-position: center;
+            position: relative; /* Necesario para la capa de opacidad */
+            overflow: hidden; /* Oculta lo que se salga del borde redondeado */
+        }
+
+        /* Capa oscura que le da el efecto translúcido */
+        #modal-content.fondo-translucido::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Negro con 60% de opacidad, ajusta el 0.6 como quieras */
+            z-index: 1; /* Se pone entre el fondo y el contenido */
+        }
+        
+        /* Asegura que el contenido (el modelo 3D) se vea por encima de la capa oscura */
+        #ficha-content {
+            position: relative;
+            z-index: 2;
+        }
+        .h5p-advanced-text {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 100px !important;
+}
+
+.h5p-advanced-text button {
+  font-size: 18px !important;
+  padding: 12px 25px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #d4af37, #8c6c1a);
+  color: #fff !important;
+  border: none !important;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.h5p-advanced-text button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #8c6c1a, #d4af37);
+}

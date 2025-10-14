@@ -1,0 +1,49 @@
+<style>
+    /* El contenedor principal que divide el espacio */
+    .ficha-layout {
+        display: flex; /* La magia de Flexbox */
+        gap: 20px; /* Un espacio elegante entre el modelo y el texto */
+        width: 100%;
+        height: 100%;
+    }
+    /* La columna para el modelo, le damos más espacio */
+    .modelo-columna {
+        flex: 3; /* Ocupa 3 partes del espacio */
+        min-width: 0; /* Evita que se desborde */
+    }
+    /* La columna para el texto */
+    .info-columna {
+        flex: 2; /* Ocupa 2 partes del espacio */
+        color: white;
+        background: rgba(20, 20, 20, 0.5); /* Fondo oscuro semitransparente */
+        padding: 25px;
+        border-radius: 8px;
+        overflow-y: auto; /* Scroll si el texto es muy largo */
+        font-family: sans-serif;
+    }
+    .info-columna h3 {
+        margin-top: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+        padding-bottom: 10px;
+    }
+</style>
+
+<div class="ficha-layout">
+    
+    <div class="modelo-columna">
+        <model-viewer 
+            src="images/3d/objeto_4.glb" 
+            alt="Modelo 3D" 
+            shadow-intensity="1" 
+            camera-controls 
+           style="width: 100%; height: 100%; --background-color: transparent;">
+        </model-viewer>
+    </div>
+
+    <div class="info-columna">
+        <h3>Jarra</h3>
+        <p>Vasija cerámica Guane del siglo X–XVI d.C., hallada en Santander en un contexto funerario. Tiene cuerpo subglobular, cuello recto y estrecho, asa plana y base plana. Su superficie alisada y de tono crema está decorada con rectángulos y espirales rojos que cubren la parte superior y el cuello, mientras el labio conserva restos de pintura.</p>
+        <p>A pesar del tiempo, la pieza se mantiene en buen estado, mostrando leves manchas de cocción que revelan su antigua manufactura.</p>
+    </div>
+
+</div>
