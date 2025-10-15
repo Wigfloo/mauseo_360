@@ -1,32 +1,69 @@
-      function abrirModal(objetoId) {
-        // Define la ruta del archivo HTML que tiene el <model-viewer>
-        // Si tus ficha están en una carpeta 'ficha', ajusta aquí:
-        const rutaFicha = `ficha/objeto_${objetoId}.html`; 
+// ===== MÉTRICAS: SOLO VISITAS =====
+const METRICS_KEY = 'museo360_metrics_v1';
 
-        const modal = document.getElementById('modal-3d');
-        const fichaContent = document.getElementById('ficha-content');
-        
-        // 1. Mostrar el modal inmediatamente
-        modal.style.display = 'flex'; 
-        fichaContent.innerHTML = 'Cargando...'; // Muestra un mensaje de carga
+function loadMetrics(){
+  try { return JSON.parse(localStorage.getItem(METRICS_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveMetrics(m){ localStorage.setItem(METRICS_KEY, JSON.stringify(m)); }
 
-        // 2. Usar 'fetch' para cargar el contenido de la ficha HTML
-        fetch(rutaFicha)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('No se pudo cargar la ficha: ' + response.statusText);
-                }
-                return response.text();
-            })
-            .then(html => {
-                // 3. Inyectar todo el HTML (incluyendo el <model-viewer>)
-                fichaContent.innerHTML = html; 
-            })
-            .catch(error => {
-                fichaContent.innerHTML = `<p style="color:red;">Error cargando el modelo: ${error.message}</p>`;
-                console.error('Error:', error);
-            });
-    }
+// cuenta una visita cada carga del museo
+(() => {
+  const m = loadMetrics();
+  m.site = m.site || { visits: 0, lastVisit: null };
+  m.site.visits += 1;
+  m.site.lastVisit = new Date().toISOString();
+  saveMetrics(m);
+})();
+
+
+
+// MODIFICA tu abrirModal para registrar vistas
+function abrirModal(objetoId) {
+  const rutaFicha = (objetoId === 'intro')
+    ? 'ficha/presentacion.html'
+    : `ficha/objeto_${objetoId}.html`;
+
+  const modal = document.getElementById('modal-3d');
+  const fichaContent = document.getElementById('ficha-content');
+
+  // métricas: vista de ficha
+  const m = loadMetrics();
+  const key = (objetoId === 'intro') ? 'intro' : `objeto_${objetoId}`;
+  m.vistas = m.vistas || {};
+  m.vistas[key] = (m.vistas[key] || 0) + 1;
+  saveMetrics(m);
+  startFichaTimer(key);
+
+  modal.style.display = 'flex';
+  fichaContent.innerHTML = 'Cargando...';
+
+  fetch(rutaFicha)
+    .then(r => { if (!r.ok) throw new Error('No se pudo cargar la ficha: ' + r.statusText); return r.text(); })
+    .then(html => {
+      fichaContent.innerHTML = html;
+      if (objetoId === 'intro') initPresentacion?.(fichaContent);
+    })
+    .catch(err => {
+      fichaContent.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+      console.error(err);
+    });
+}
+
+function cerrarModal() {
+  const modal = document.getElementById('modal-3d');
+  const fichaContent = document.getElementById('ficha-content');
+  modal.style.display = 'none';
+  fichaContent.innerHTML = '';
+  stopFichaTimer(); // <-- suma el tiempo a métricas
+  const m = loadMetrics();
+  const key = (objetoId === 'intro') ? 'intro' : `objeto_${objetoId}`;
+  m.vistas = m.vistas || {};
+  m.vistas[key] = (m.vistas[key] || 0) + 1;
+  saveMetrics(m);
+  startFichaTimer(key);
+}
+
 
     function cerrarModal() {
         const modal = document.getElementById('modal-3d');
@@ -37,6 +74,7 @@
         document.body.style.overflow = '';
         // Limpiar el contenido al cerrar para evitar problemas de memoria y modelos activos
         fichaContent.innerHTML = ''; 
+        stopFichaTimer();
     }
     
 
@@ -56,27 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
   observer.observe(document.body, { childList: true, subtree: true });
 });
 
-function abrirModal(objetoId) {
-  let rutaFicha;
 
-  if (objetoId === "intro" || objetoId === 0) {
-    // Nueva ruta para la presentación
-    rutaFicha = `ficha/presentacion.html`;
-  } else {
-    rutaFicha = `ficha/objeto_${objetoId}.html`;
-  }
-
-  const modal = document.getElementById("modal-3d");
-  const fichaContent = document.getElementById("ficha-content");
-
-  modal.style.display = "flex";
-  fichaContent.innerHTML = "Cargando...";
-
-  fetch(rutaFicha)
-    .then(r => r.ok ? r.text() : Promise.reject(r.statusText))
-    .then(html => fichaContent.innerHTML = html)
-    .catch(err => fichaContent.innerHTML = `<p style="color:red;">Error: ${err}</p>`);
-}
+//Abrir modal y cargar ficha
 
 function abrirModal(objetoId) {
   const rutaFicha = (objetoId === 'intro')
@@ -89,8 +108,70 @@ function abrirModal(objetoId) {
   modal.style.display = 'flex';
   fichaContent.innerHTML = 'Cargando...';
 
+  //menu de fichas
   fetch(rutaFicha)
-    .then(r => r.ok ? r.text() : Promise.reject(r.statusText))
-    .then(html => fichaContent.innerHTML = html)
-    .catch(err => fichaContent.innerHTML = `<p style="color:red;">Error: ${err}</p>`);
+    .then(r => {
+      if (!r.ok) throw new Error('No se pudo cargar la ficha: ' + r.statusText);
+      return r.text();
+    })
+    .then(html => {
+      fichaContent.innerHTML = html;
+
+      // 👉 si es la presentación, engancha los eventos del submenú
+      if (objetoId === 'intro') {
+        initPresentacion(fichaContent);
+      }
+    })
+    .catch(err => {
+      fichaContent.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+      console.error(err);
+    });
 }
+
+
+function cerrarModal() {
+  const modal = document.getElementById('modal-3d');
+  const fichaContent = document.getElementById('ficha-content');
+  modal.style.display = 'none';
+  fichaContent.innerHTML = '';
+  pararGuia(); // 👉 corta audio/tts al cerrar
+}
+// ==== GUIA AUDITIVA (MP3 o TTS) ====
+let guiaAudio = null;
+let guiaTTSUtter = null;
+
+function initGuiaAudioEnFicha(container){
+  crearControlesGuia(container, () => iniciarGuia(container));
+}
+// Inicializa la ficha de presentación (submenú)
+function initPresentacion(container){
+  const intro = container.querySelector('#vista-intro');
+  const menu  = container.querySelector('#vista-menu');
+  const btnComenzar = container.querySelector('#btn-comenzar');
+  const btnVolver   = container.querySelector('#btn-volver');
+
+  if (!btnComenzar || !intro || !menu) return; // si no es la presentación, salimos
+
+  btnComenzar.addEventListener('click', () => {
+    intro.style.display = 'none';
+    menu.classList.add('visible');
+    menu.setAttribute('aria-hidden','false');
+  });
+
+  if (btnVolver){
+    btnVolver.addEventListener('click', () => {
+      menu.classList.remove('visible');
+      menu.setAttribute('aria-hidden','true');
+      intro.style.display = 'block';
+    });
+  }
+
+  // Botones de las tarjetas: abrir fichas
+  container.querySelectorAll('.card .go').forEach(b=>{
+    b.addEventListener('click', () => {
+      const id = parseInt(b.getAttribute('data-obj'), 10);
+      if (!isNaN(id)) abrirModal(id);
+    });
+  });
+}
+

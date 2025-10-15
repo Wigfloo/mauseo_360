@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Login Admin</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0b0b0b;color:#eee;font-family:system-ui,Segoe UI,Roboto}
+  .card{background:rgba(30,25,20,.9);border:1px solid rgba(212,175,55,.28);border-radius:14px;padding:24px 22px;box-shadow:0 12px 40px rgba(0,0,0,.6);width:min(92vw,380px)}
+  h1{font-size:20px;margin:0 0 12px;color:#d4af37}
+  label{display:block;margin:.35rem 0 .25rem}
+  input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#111;color:#eee}
+  .row{display:flex;gap:10px;margin-top:10px}
+  button{flex:1;padding:10px;border-radius:10px;border:0;cursor:pointer;color:#fff;background:linear-gradient(135deg,#d4af37,#8c6c1a)}
+  .muted{color:#aaa;font-size:.85rem;margin-top:8px}
+  .err{color:#ff6b6b;height:18px;margin-top:6px}
+  a{color:#9ad}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Acceso Administrador</h1>
+    <form id="f">
+      <label>Usuario</label>
+      <input id="u" autocomplete="username" placeholder="usuario"/>
+      <label>Contraseña</label>
+      <input id="p" type="password" autocomplete="current-password" placeholder="contraseña"/>
+      <div class="err" id="e"></div>
+      <div class="row">
+        <button type="submit">Entrar</button>
+        <a class="muted" href="../index.html" style="align-self:center">Volver</a>
+      </div>
+      
+    </form>
+  </div>
+
+<script>
+document.getElementById('f').addEventListener('submit', function(ev){
+  ev.preventDefault();
+  const u = document.getElementById('u').value.trim();
+  const p = document.getElementById('p').value.trim();
+  if(u === 'admin' && p === 'admin'){
+    // "sesión" ultra simple para esta vista (banderita en sessionStorage)
+    sessionStorage.setItem('isAdmin','1');
+    location.href = 'metrics.html';
+  }else{
+    document.getElementById('e').textContent = 'Credenciales incorrectas';
+  }
+});
+</script>
+</body>
+</html>
